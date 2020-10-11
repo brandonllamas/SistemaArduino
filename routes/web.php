@@ -60,6 +60,11 @@ Route::get('/Admin', function () {
 
 //creacion de roles
 Route::get('/Prueba', function () {
+
+    $user = User::find(1);
+    //aqui le decimos que  agregue al usuario 1 como admin
+    $user->roles()->sync(1);
+    return $user->roles;
     //creamos bloque
     /*
     return Bloque::create([
@@ -71,13 +76,13 @@ Route::get('/Prueba', function () {
         'Estado_Curso'=>'',
     ]);
     */
-
+/*
 
     $curso=Curso::find(1);
 
     $curso->bloque()->sync(5);
     return $curso->bloque;
-
+*/
     /*  creamos rol admin
         return Role::create([
             'name' =>'Admin',
@@ -123,4 +128,6 @@ Auth::routes();
 
 //aarduino
 
-Route::get('Arduino/user={user}&pass={pass}', [App\Models\Arduino::class, 'recibir'])->name('recibir');
+Route::get('Arduino/curso={idCurso}&Temperatura={Temperatura}&Tarjeta={Tarjeta}', [App\Models\Arduino::class, 'recibir'])->name('recibir');
+Route::get('Arduino1/curso={idCurso}&Tarjeta={Tarjeta}', [App\Models\Arduino::class, 'prueba'])->name('Prueba');
+

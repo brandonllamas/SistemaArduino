@@ -22,6 +22,7 @@ class Admin extends Model
 
     public function UpdateUser(Request $request, $id)
     {
+
         $user = \App\Models\User::findOrFail($id);
         $request->validate([
             'name' => 'required',
@@ -30,32 +31,52 @@ class Admin extends Model
             'IdCarnet' => 'required',
             'password' => 'required'
         ]);
+        $CorreoUsuario=$user->email;
+        $CedulaUserActualizar = $user->cedula;
+        $TarjetaUsuario=$user->IdCarnet;
+
         $userIDTarjeta = User::where('IdCarnet', '=',  $request->IdCarnet)->first();
         $userMail = User::where('email', '=',  $request->email)->first();
         $userCedula = User::where('cedula', '=',  $request->cedula)->first();
-        $CedulaUserActualizar = $user->cedula;
-        if ($userMail === null) {
-            if ($userCedula === null) {
-                if ($userIDTarjeta == null) {
-                    $notaActualizada = \App\Models\User::find($id);
-                    $notaActualizada->name = $request->name;
-                    $notaActualizada->email = $request->email;
-                    $notaActualizada->cedula = $request->cedula;
-                    $notaActualizada->IdCarnet = $request->IdCarnet;
-                    $notaActualizada->save();
-                    $user = \App\Models\User::all();
-                    return view('User.admin.Action.Profesor', compact('user'));
-                } else {
 
-                    return back()->with('mensajeErr', 'Ya hay un usuario con esta tarjeta');
-                }
-            } else {
-                return back()->with('mensajeErr', 'Ya hay un usuario con esta cedula');
-            }
-        } else {
+        $notaActualizada = \App\Models\User::find($id);
+        $notaActualizada->name = $request->name;
 
+        if($CorreoUsuario==$request->email){
+            $notaActualizada->email = $request->email;
+
+        }elseif($userMail === null){
+            $notaActualizada->email = $request->email;
+        }else{
             return back()->with('mensajeErr', 'Ya hay un usuario con este correo');
         }
+
+        if($CedulaUserActualizar==$request->cedula){
+            $notaActualizada->cedula = $request->cedula;
+        }elseif($userCedula === null){
+            $notaActualizada->cedula = $request->cedula;
+        }else{
+            return back()->with('mensajeErr', 'Ya hay un usuario con esta cedula');
+        }
+
+        if($TarjetaUsuario==$request->IdCarnet){
+            $notaActualizada->IdCarnet = $request->IdCarnet;
+        }elseif($userIDTarjeta === null){
+            $notaActualizada->IdCarnet = $request->IdCarnet;
+        }else{
+            return back()->with('mensajeErr', 'Ya hay un usuario con esta tarjeta');
+        }
+        $notaActualizada->save();
+        if($user->roles->first()->name=='Estudiante'){
+            $user = \App\Models\User::all();
+            return view('User.admin.Action.Estudiantes', compact('user'));
+        }elseif($user->roles->first()->name=='Profesor'){
+            $user = \App\Models\User::all();
+            return view('User.admin.Action.Profesor', compact('user'));
+        }
+
+
+
     }
 
 
@@ -222,11 +243,10 @@ class Admin extends Model
     public function EliminarCurso($id)
     {
 
-        $records = DB::table('cursos')
-
-            ->where('cursos.id', '=', $id)
-            ->delete();
-
+        $idCurso=DB::table('cursos')
+        ->join('bloque_curso', 'bloque_curso.curso_id', '=', 'cursos.id')
+        ->where('bloque_curso.id', '=', $id)
+        ->delete();
 
         return back()->with('mensaje', 'Se limino el curso');
     }

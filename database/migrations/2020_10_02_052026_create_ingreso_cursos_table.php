@@ -17,6 +17,7 @@ class CreateIngresoCursosTable extends Migration
             $table->bigIncrements('id');
             $table->String('curso_id');
             $table->string('Usuario_id');
+            $table->String('Temperatura');
             $table->boolean('Ingreso');
             $table->boolean('Salio');
             $table->date('Fecha');
