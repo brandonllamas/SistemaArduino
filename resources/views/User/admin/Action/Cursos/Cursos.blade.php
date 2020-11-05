@@ -60,7 +60,7 @@
                                         @foreach ($records as $item)
 
                                             <tr>
-                                                <th scope="row">{{ $item->id }}</th>
+                                                <th scope="row">{{ $item->curso_id }}</th>
                                                 <td>{{ $item->nombreCurso }}</td>
                                                 <td>{{ $item->Capacidad }}</td>
                                                 <td>{{ $item->Estado_Curso }}</td>
@@ -70,9 +70,9 @@
                                                         @method('DELETE')
                                                         @csrf
                                                         <button type="submit"
-                                                            class="btn btn-danger btn-sm">Eliminar</button>
+                                                            class="btn btn-danger btn-sm">Eliminar</button> <br>
                                                     </form>
-
+                                                    <a href="{{ route('InfoCurso', $item->curso_id ) }}" class="btn btn-warning">Ingresos</a>
 
                                                 </td>
                                             </tr>

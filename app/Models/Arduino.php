@@ -10,7 +10,7 @@ class Arduino extends Model
 {
     use HasFactory;
 
-    public function recibir($idCurso,$Temperatura,$Tarjeta){
+    public function recibirIngreso($idCurso,$Temperatura,$Tarjeta){
 
         $curso=Curso::find($idCurso);
         if($curso==null){
@@ -21,17 +21,57 @@ class Arduino extends Model
             ->where('IdCarnet','=',$Tarjeta)
             ->get();
 
+
             if($alumno->isEmpty()){
                 echo "ERROR";
             }else{
                 $carbon = new \Carbon\Carbon();
                 $date = $carbon->now();
+                $date->toDateTimeString();
                 $nuevoIngreso= new \App\Models\IngresoCurso();
                 $nuevoIngreso->curso_id=$idCurso;
                 $nuevoIngreso->Usuario_id=$Tarjeta;
                 $nuevoIngreso->Temperatura=$Temperatura;
+
                 $nuevoIngreso->Ingreso=true;
                 $nuevoIngreso->Salio =false;
+                $nuevoIngreso->Fecha=$date;
+                $nuevoIngreso->save();
+
+               echo "Terminado";
+
+            }
+
+        }
+
+
+    }
+
+    public function recibirSalida($idCurso,$Temperatura,$Tarjeta){
+
+        $curso=Curso::find($idCurso);
+        if($curso==null){
+            echo "ERROR";
+        }else{
+            $alumno=DB::table('users')
+            ->select('id')
+            ->where('IdCarnet','=',$Tarjeta)
+            ->get();
+
+
+            if($alumno->isEmpty()){
+                echo "ERROR";
+            }else{
+                $carbon = new \Carbon\Carbon();
+                $date = $carbon->now();
+                $date->toDateTimeString();
+                $nuevoIngreso= new \App\Models\IngresoCurso();
+                $nuevoIngreso->curso_id=$idCurso;
+                $nuevoIngreso->Usuario_id=$Tarjeta;
+                $nuevoIngreso->Temperatura=$Temperatura;
+
+                $nuevoIngreso->Ingreso=false;
+                $nuevoIngreso->Salio =true;
                 $nuevoIngreso->Fecha=$date;
                 $nuevoIngreso->save();
 
@@ -53,4 +93,6 @@ class Arduino extends Model
         }
 
     }
+
+
 }

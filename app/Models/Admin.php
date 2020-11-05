@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\DB;
 
 class Admin extends Model
@@ -22,58 +23,14 @@ class Admin extends Model
 
     public function UpdateUser(Request $request, $id)
     {
-
-        $user = \App\Models\User::findOrFail($id);
-        $request->validate([
-            'name' => 'required',
-            'cedula' => 'required',
-            'email' => 'required',
-            'IdCarnet' => 'required',
-            'password' => 'required'
-        ]);
-        $CorreoUsuario=$user->email;
-        $CedulaUserActualizar = $user->cedula;
-        $TarjetaUsuario=$user->IdCarnet;
-
-        $userIDTarjeta = User::where('IdCarnet', '=',  $request->IdCarnet)->first();
-        $userMail = User::where('email', '=',  $request->email)->first();
-        $userCedula = User::where('cedula', '=',  $request->cedula)->first();
-
         $notaActualizada = \App\Models\User::find($id);
         $notaActualizada->name = $request->name;
+        $notaActualizada->email = $request->email;
+        $notaActualizada->cedula = $request->cedula;
+        $notaActualizada->IdCarnet = $request->IdCarnet;
 
-        if($CorreoUsuario==$request->email){
-            $notaActualizada->email = $request->email;
-
-        }elseif($userMail === null){
-            $notaActualizada->email = $request->email;
-        }else{
-            return back()->with('mensajeErr', 'Ya hay un usuario con este correo');
-        }
-
-        if($CedulaUserActualizar==$request->cedula){
-            $notaActualizada->cedula = $request->cedula;
-        }elseif($userCedula === null){
-            $notaActualizada->cedula = $request->cedula;
-        }else{
-            return back()->with('mensajeErr', 'Ya hay un usuario con esta cedula');
-        }
-
-        if($TarjetaUsuario==$request->IdCarnet){
-            $notaActualizada->IdCarnet = $request->IdCarnet;
-        }elseif($userIDTarjeta === null){
-            $notaActualizada->IdCarnet = $request->IdCarnet;
-        }else{
-            return back()->with('mensajeErr', 'Ya hay un usuario con esta tarjeta');
-        }
         $notaActualizada->save();
-        if($user->roles->first()->name=='Estudiante'){
-            $user = \App\Models\User::all();
-            return view('User.admin.Action.Estudiantes', compact('user'));
-        }elseif($user->roles->first()->name=='Profesor'){
-            $user = \App\Models\User::all();
-            return view('User.admin.Action.Profesor', compact('user'));
-        }
+        return $notaActualizada;
 
 
 
@@ -87,19 +44,8 @@ class Admin extends Model
     //agregamos profesores
     public function createTeacher(Request $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'cedula' => 'required',
-            'email' => 'required',
-            'IdCarnet' => 'required',
-            'password' => 'required'
-        ]);
-        $userIDTarjeta = User::where('IdCarnet', '=',  $request->IdCarnet)->first();
-        $userMail = User::where('email', '=',  $request->email)->first();
-        $userCedula = User::where('cedula', '=',  $request->cedula)->first();
-        if ($userMail === null) {
-            if ($userCedula === null) {
-                if ($userIDTarjeta == null) {
+
+
                     // user doesn't exist
                     $user = new \App\Models\User;
                     $user->name = $request->name;
@@ -109,34 +55,30 @@ class Admin extends Model
                     $user->password = Hash::make($request->password);
                     $user->save();
                     $user->roles()->sync(3);
-                    return back()->with('mensaje', 'Profesor agregado');
-                } else {
-
-                    return back()->with('mensajeErr', 'Ya hay un usuario con esta tarjeta');
-                }
-            } else {
-                return back()->with('mensajeErr', 'Ya hay un usuario con esta cedula');
-            }
-        } else {
-
-            return back()->with('mensajeErr', 'Ya hay un usuario con este correo');
-        }
+        return $user;
     }
 
     //ver profesores
-    public function IndexProfesores()
+    public function IndexProfesores(Request $request)
     {
 
-        $user = \App\Models\User::all();
+        if($request->ajax()){
 
-        return view('User.admin.Action.Profesor', compact('user'));
+            $profesores=DB::table('users')
+            ->join('role_user', 'role_user.user_id', '=', 'users.id')
+            ->where('role_user.role_id','=',3)
+            ->get();
+
+            return $profesores;
+        }else{
+            return view('User.admin.indexRoot');
+        }
+
     }
     public function eliminarProfesor($id)
     {
         $profesorEliminar = \App\Models\User::findOrFail($id);
         $profesorEliminar->delete();
-
-        return back()->with('mensaje', 'Nota Eliminada');
     }
 
 
@@ -254,13 +196,7 @@ class Admin extends Model
        //agregamos Estudiantes
        public function crearEstudiante(Request $request)
        {
-           $request->validate([
-               'name' => 'required',
-               'cedula' => 'required',
-               'email' => 'required',
-               'IdCarnet' => 'required',
-               'password' => 'required'
-           ]);
+
            $userIDTarjeta = User::where('IdCarnet', '=',  $request->IdCarnet)->first();
            $userMail = User::where('email', '=',  $request->email)->first();
            $userCedula = User::where('cedula', '=',  $request->cedula)->first();
@@ -276,13 +212,13 @@ class Admin extends Model
                        $user->password = Hash::make($request->password);
                        $user->save();
                        $user->roles()->sync(2);
-                       return back()->with('mensaje', 'Estudiante agregado');
+                       return $user;
                    } else {
 
-                       return back()->with('mensajeErr', 'Ya hay un usuario con esta tarjeta');
+                       return'Ya hay un usuario con esta tarjeta';
                    }
                } else {
-                   return back()->with('mensajeErr', 'Ya hay un usuario con esta cedula');
+                   return 'Ya hay un usuario con esta cedula';
                }
            } else {
 
@@ -290,11 +226,55 @@ class Admin extends Model
            }
        }
 
-       public function IndexEstudiantes()
+       public function IndexEstudiantes(Request $request)
        {
+        if($request->ajax()){
+            $user=\App\Models\User::all();
+            $Estudiantes=DB::table('users')
+            ->join('role_user', 'role_user.user_id', '=', 'users.id')
+            ->where('role_user.role_id','=',2)
+            ->get();
 
-           $user = \App\Models\User::all();
+            return $Estudiantes;
+        }else{
+            return view('User.admin.indexRoot');
+        }
 
-           return view('User.admin.Action.Estudiantes', compact('user'));
        }
+       public function obtenerEstudiante(Request $request,$carnet){
+        if($request->ajax()){
+            $Estudiantes=DB::table('users')
+            ->join('role_user', 'role_user.user_id', '=', 'users.id')
+            ->where('users.IdCarnet','=',$carnet)
+            ->get();
+
+
+            return $Estudiantes;
+        }else{
+            return view('User.admin.indexRoot');
+        }
+       }
+       public function verListaCursos(Request $request){
+        if($request->ajax()){
+            $cursos=\App\Models\Curso::all();
+            return $cursos;
+        }else{
+            return view('User.admin.indexRoot');
+        }
+
+       }
+
+       public function InfoCurso(Request $request,$idCurso,$fecha){
+        if($request->ajax()){
+            $ingreso=DB::table('ingreso_cursos')
+            ->where('curso_id', '=', $idCurso)
+            ->where('Fecha','=',$fecha)
+            ->get();
+            return $ingreso ;
+        }else{
+            return view('User.admin.indexRoot');
+        }
+
+       }
+
 }

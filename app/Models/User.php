@@ -46,5 +46,6 @@ class User extends Authenticatable
 
      public function logOut(){
         Auth::logout();
+        return view('auth.login');
      }
 }

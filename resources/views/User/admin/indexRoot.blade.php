@@ -1,15 +1,21 @@
-@extends('User.admin.layout.Dasboard')
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+    <meta name="user" content="{{ Auth::user()->name }}">
 
+        <title>Laravel</title>
 
-@section('content')
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
 
-    <div class="container">
-        <div class="container h-100">
-            <div class="row justify-content-center h-100">
-                <div class="col-sm-8 align-self-center text-center">
-                    Index
-                </div>
-            </div>
+        <!-- Styles -->
+        <link href="{{ mix('css/app.css') }}" rel="stylesheet">
+
+    </head>
+    <body>
+        <div id="app">
+           <dashboard></dashboard>
         </div>
-    </div>
-@endsection
+        <script src="{{ mix('js/app.js') }}"></script>
+    </body>
+</html>
